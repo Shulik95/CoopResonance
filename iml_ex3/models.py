@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
 
 
 class Perceptron:
@@ -80,7 +82,9 @@ class LDA:
         """
         del_1, del_min1 = 1., -1.
         y_hat = np.array(
-            [{0: 1., 1: -1.}[np.argmax([self.deltas[0][i], self.deltas[1][i]])] for i in range(X.shape[0])])
+            [{0: 1., 1: -1.}[np.argmax([self.deltas[del_1][i],
+                                        self.deltas[del_min1][i]])]
+             for i in range(X.shape[0])])
         return y_hat
 
     def score(self, X, y):
@@ -89,13 +93,74 @@ class LDA:
 
 class SVM:
     def __init__(self):
-        pass
+        self.svm = SVC(C=1e10, kernel='linear')
 
     def fit(self, X, y):
-        pass
+        """
+        Given a training set, this method learns the parameters of the model
+        and stores the trained model in self.model
+        :param X: a numpy array of size m x d.
+        :param y: a binary vector of size m.
+        """
+        self.svm.fit(X, y)
 
     def predict(self, X):
+        """
+        uses the fitted parameters of the model to predict over a given dataset.
+        :param X: numpy array of dimension mxd
+        :return: the prediction of the trained model
+        """
+        return self.svm.predict(X)
+
+    def score(self, X, y):
         pass
+
+
+class Logistic:
+    def __init__(self):
+        self.logistic = LogisticRegression(solver='liblinear')
+
+    def fit(self, X, y):
+        """
+        Given a training set, this method learns the parameters of the model
+        and stores the trained model in self.model
+        :param X: a numpy array of size m x d.
+        :param y: a binary vector of size m.
+        """
+        self.logistic.fit(X, y)
+
+    def predict(self, X):
+        """
+        uses the fitted parameters of the model to predict over a given dataset.
+        :param X: numpy array of dimension mxd
+        :return: the prediction of the trained model
+        """
+        return self.logistic.predict(X)
+
+    def score(self, X, y):
+        pass
+
+
+class DecisionTree:
+    def __init__(self):
+        self.tree = DecisionTreeClassifier()
+
+    def fit(self, X, y):
+        """
+        Given a training set, this method learns the parameters of the model
+        and stores the trained model in self.model
+        :param X: a numpy array of size m x d.
+        :param y: a binary vector of size m.
+        """
+        self.tree.fit(X, y)
+
+    def predict(self, X):
+        """
+        uses the fitted parameters of the model to predict over a given dataset.
+        :param X: numpy array of dimension mxd
+        :return: the prediction of the trained model
+        """
+        return self.tree.predict(X)
 
     def score(self, X, y):
         pass

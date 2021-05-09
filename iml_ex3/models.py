@@ -46,7 +46,7 @@ class AbsClass(ABC):
 class Perceptron(AbsClass):
 
     def __init__(self):
-        self.weights = None
+        self.model = None
 
     def fit(self, X, y):
         """
@@ -55,14 +55,15 @@ class Perceptron(AbsClass):
         :param X: a numpy array of size m x d.
         :param y: a binary vector of size m.
         """
-        self.weights = np.zeroes(shape=(X.shape[1]))  # init column vec of zeroes
-        hom_X = np.hstack(np.ones((X.shape[0], 1), X))
+        hom_X = np.hstack((np.ones((X.shape[0], 1)), X))
+        self.model = np.zeros(shape=(hom_X.shape[1]))  # init column vec of zeroes
+
         while True:
             exists = False
             for i in range(len(y)):
-                if y[i] * np.dot(self.weights, hom_X[i]) <= 0:
+                if y[i] * np.dot(self.model, hom_X[i]) <= 0:
                     exists = True  # update flag
-                    self.weights = self.weights + y[i] * hom_X[i]
+                    self.model = self.model + y[i] * hom_X[i]
             if not exists:
                 break
 
@@ -73,7 +74,7 @@ class Perceptron(AbsClass):
         :return: the prediction of the trained model
         """
         hom_X = np.hstack(np.ones((X.shape[0], 1), X))
-        return np.sign(hom_X @ self.weights)
+        return np.sign(hom_X @ self.model)
 
     def score(self, X, y):
         """

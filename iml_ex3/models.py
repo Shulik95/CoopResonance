@@ -73,7 +73,7 @@ class Perceptron(AbsClass):
         :param X: numpy array of dimension mxd
         :return: the prediction of the trained model
         """
-        hom_X = np.hstack(np.ones((X.shape[0], 1), X))
+        hom_X = np.hstack((np.ones((X.shape[0], 1)), X))
         return np.sign(hom_X @ self.model)
 
     def score(self, X, y):
@@ -97,10 +97,10 @@ class LDA(AbsClass):
         for _y in [1, -1]:
             prob = np.sum(y == _y) / len(y)  # probability to get val _y
             ln_P = np.log(prob)
-            mean_vec = np.array([np.mean(x_i) for x_i in X[y == _y]])
-            inv_sig = np.pinv(np.cov(X))
+            mean_vec = np.array([np.mean(x_i) for x_i in X[y == _y].T])
+            inv_sig = np.linalg.pinv(np.cov(X.T))
 
-            delta = [(x.T @ inv_sig @ mean_vec - 0.5 * mean_vec.T @ inv_sig @ mean_vec + ln_P) for x in X]
+            delta = lambda x:   x.T @ inv_sig @ mean_vec - 0.5 * mean_vec.T @ inv_sig @ mean_vec + ln_P
             self.deltas.append(delta)
 
     def predict(self, X):
@@ -109,12 +109,14 @@ class LDA(AbsClass):
         :param X: numpy array of dimension mxd
         :return: the prediction of the trained model
         """
-        del_1, del_min1 = 0, 1
-        y_hat = np.array(
-            [{0: 1., 1: -1.}[np.argmax([self.deltas[del_1][i],
-                                        self.deltas[del_min1][i]])]
-             for i in range(X.shape[0])])
-        return y_hat
+
+        y_h = []
+        for x in X:
+            if self.deltas[0](x) > self.deltas[1](x):
+                y_h.append(1.)
+            else:
+                y_h.append(-1.)
+        return np.array(y_h)
 
     def score(self, X, y):
         """

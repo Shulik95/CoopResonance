@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from models import Perceptron, SVM
+from models import Perceptron, SVM, LDA
 
 
 def draw_points(m):
@@ -20,6 +20,9 @@ def draw_points(m):
 
 
 def draw_for_real():
+    """
+    plots hyperplanes for different classifiers for dataset of different size.
+    """
     m_arr = [5, 10, 15, 25, 70]
     for m in m_arr:
         X, y = draw_points(m)
@@ -51,5 +54,51 @@ def draw_for_real():
         plt.show()
 
 
+def test_mode_acc(times=50, k=10000):
+    """
+    tests the accuracy of all models
+    :param times: number of times to repeat process
+    :param k: number of test points.
+    """
+    accuracy = []
+    m_arr = [5, 10, 15, 25, 70]
+    for m in m_arr:
+        m_acc = [0, 0, 0]
+        for i in range(times):
+            X, y = None, np.ones(shape=(m,))
+            while np.sum(y == 1) == len(y) or np.sum(y == -1) == len(y):
+                X, y = draw_points(m)
+            X_k, y_k = draw_points(k)
+
+            perc = Perceptron()
+            svm = SVM()
+            lda = LDA()
+
+            # train classifiers
+            models = [perc, svm, lda]
+            for j in range(len(models)):
+                models[j].fit(X, y)
+                _y = models[j].predict(X_k)
+                m_acc[j] += np.sum(y_k == _y) / len(y_k)
+        accuracy.append(np.array([m_acc[0] / times, m_acc[1] / times, m_acc[2] / times]))
+    return accuracy
+
+
+def plot_acc_vs_m(acc_arr):
+    """
+    plots accuracy as function of training data size.
+    :param acc_arr: python list of tuples of form (perc_acc, svm_acc, lda_acc)
+    where each the mean accuracy for a given m.
+    """
+    m_arr = [5, 10, 15, 25, 70]
+    as_np = np.array(acc_arr)
+    for i in range(as_np.shape[1]):
+        y = as_np[:, i]
+        plt.plot(m_arr, y)
+    plt.legend(("Perceptron", "SVM", "LDA"))
+    plt.show()
+
+
 if __name__ == '__main__':
-    draw_for_real()
+    acc_arr = test_mode_acc()
+    plot_acc_vs_m(acc_arr)

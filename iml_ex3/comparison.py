@@ -54,14 +54,13 @@ def draw_for_real():
         plt.show()
 
 
-def test_mode_acc(times=50, k=10000):
+def test_mode_acc(times=50, k=10000, m_arr=(5, 10, 15, 25, 70)):
     """
     tests the accuracy of all models
     :param times: number of times to repeat process
     :param k: number of test points.
     """
     accuracy = []
-    m_arr = [5, 10, 15, 25, 70]
     for m in m_arr:
         m_acc = [0, 0, 0]
         for i in range(times):
@@ -84,21 +83,20 @@ def test_mode_acc(times=50, k=10000):
     return accuracy
 
 
-def plot_acc_vs_m(acc_arr):
+def plot_acc_vs_m(acc_arr, m_arr, legend_tup):
     """
     plots accuracy as function of training data size.
+    :param m_arr:
+    :param legend:
     :param acc_arr: python list of tuples of form (perc_acc, svm_acc, lda_acc)
     where each the mean accuracy for a given m.
     """
-    m_arr = [5, 10, 15, 25, 70]
+
     as_np = np.array(acc_arr)
     for i in range(as_np.shape[1]):
         y = as_np[:, i]
         plt.plot(m_arr, y)
-    plt.legend(("Perceptron", "SVM", "LDA"))
+    plt.legend(legend_tup)
     plt.show()
 
 
-if __name__ == '__main__':
-    acc_arr = test_mode_acc()
-    plot_acc_vs_m(acc_arr)

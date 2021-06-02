@@ -11,6 +11,7 @@ import numpy as np
 from ex4_tools import *
 
 NO_NOISE = 0
+SMALL_NOISE = 0.01
 
 
 class AdaBoost(object):
@@ -76,7 +77,7 @@ class AdaBoost(object):
 
 def q_13(m=5000, T=500, m_test=200):
     # create data and train model
-    X_test, y_test, X_train, y_train, ab = init_data_and_mod(T, m, m_test)
+    X_test, y_test, X_train, y_train, ab, D = init_data_and_mod(T, m, m_test)
     test_err, train_err = [], []
 
     # get error for each
@@ -99,7 +100,7 @@ def q_14(m=5000, m_test=200):
     for i in range(len(T_arr)):
         T = T_arr[i]
         # create data and train model
-        X_test, y_test, X_train, y_train, ab = init_data_and_mod(T, m, m_test)
+        X_test, y_test, X_train, y_train, ab, D = init_data_and_mod(T, m, m_test)
 
         test_err = ab.error(X_test, y_test, T)
 
@@ -107,7 +108,6 @@ def q_14(m=5000, m_test=200):
         decision_boundaries(ab, X_test, y_test, T)
     plt.tight_layout(pad=1.)
     # plt.show()
-
 
 
 def init_data_and_mod(T, m, m_test):
@@ -118,26 +118,38 @@ def init_data_and_mod(T, m, m_test):
     :param m_test: number of test samples
     :return: X_test, y_test, X_train, y_train, classifier
     """
-    X_train, y_train = generate_data(m, NO_NOISE)
-    X_test, y_test = generate_data(m_test, NO_NOISE)
+    X_train, y_train = generate_data(m, SMALL_NOISE)
+    X_test, y_test = generate_data(m_test, SMALL_NOISE)
+    ab = AdaBoost(DecisionStump, T)
+    D = ab.train(X_train, y_train)
+    return X_test, y_test, X_train, y_train, ab, D
+
+
+def q_15(m=1000, m_test=200, T=500):
+    min_err, min_T, model = 1, -1, 0
+    X_train, y_train = generate_data(m, SMALL_NOISE)
+    X_test, y_test = generate_data(m_test, SMALL_NOISE)
     ab = AdaBoost(DecisionStump, T)
     ab.train(X_train, y_train)
-    return X_test, y_test, X_train, y_train, ab
-
-
-def q_15(m=5000, m_test=200, T=500):
-    min_err, min_T = 1, -1
-    X_test, y_test, X_train, y_train, ab = init_data_and_mod(T, m, m_test)
     for max_t in range(T):
-        test_err = ab.error(X_test,y_test,max_t)
+        test_err = ab.error(X_test, y_test, max_t)
         if test_err < min_err:
             min_err = test_err
             min_T = max_t
-    decision_boundaries(ab, X_train, y_train, min_T)
+            model = ab
+    decision_boundaries(model, X_train, y_train, min_T)
     plt.savefig("q15_plot")
     plt.show()
     return min_err, min_T
 
 
+def q_16(T, m, m_test):
+    X_test, y_test, X_train, y_train, ab, D = init_data_and_mod(T, m, m_test)
+    D = D / np.max(D) * 10
+    decision_boundaries(ab, X_train, y_train, T, D)
+    plt.savefig("q16_plot")
+    plt.show()
+
+
 if __name__ == '__main__':
-    print(q_15())
+    q_16(500, 5000, 200)

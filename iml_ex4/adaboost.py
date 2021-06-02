@@ -38,11 +38,10 @@ class AdaBoost(object):
             self.h[i] = self.WL(D, X, y)  # construct a weak learner
             y_hat = (self.h[i]).predict(X)
             err_t = np.sum(D[y != y_hat])
-            self.w[i] = 0.5 * np.log((1/err_t) - 1)
-            D = np.multiply(D, np.exp(-y * self.w[i]*self.h[i]))  # update sample weights
+            self.w[i] = 0.5 * np.log((1 / err_t) - 1)
+            D = np.multiply(D, np.exp(-y * self.w[i] * self.h[i]))  # update sample weights
             D = D / np.sum(D)
         return D
-
 
     def predict(self, X, max_t):
         """
@@ -55,7 +54,7 @@ class AdaBoost(object):
         """
 
         predictions = [self.w[i] * self.h[i].predict(X) for i in range(max_t)]
-        return np.sign(np.sum(predictions))
+        return np.sign(sum(predictions))
 
     def error(self, X, y, max_t):
         """
@@ -66,4 +65,5 @@ class AdaBoost(object):
         :param max_t: integer < self.T: the number of classifiers to use for the classification
         :return: error : the ratio of the wrong predictions when predict only with max_t weak learners (float)
         """
-        # TODO complete this function
+        wrong = sum(np.ones(y[y != self.predict(X, max_t)]))  # number of wrong classifications
+        return wrong / len(y)

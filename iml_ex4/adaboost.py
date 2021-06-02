@@ -76,10 +76,7 @@ class AdaBoost(object):
 
 def q_13(m=5000, T=500, m_test=200):
     # create data and train model
-    X_train, y_train = generate_data(m, NO_NOISE)
-    X_test, y_test = generate_data(m_test, NO_NOISE)
-    ab = AdaBoost(DecisionStump, T)
-    ab.train(X_train, y_train)
+    X_test, y_test, X_train, y_train, ab = init_data_and_mod(T, m, m_test)
     test_err, train_err = [], []
 
     # get error for each
@@ -96,6 +93,51 @@ def q_13(m=5000, T=500, m_test=200):
     plt.title("Error vs. T")
 
 
+def q_14(m=5000, m_test=200):
+    T_arr = [5, 10, 50, 100, 200, 500]
+
+    for i in range(len(T_arr)):
+        T = T_arr[i]
+        # create data and train model
+        X_test, y_test, X_train, y_train, ab = init_data_and_mod(T, m, m_test)
+
+        test_err = ab.error(X_test, y_test, T)
+
+        plt.subplot(2, 3, i + 1)
+        decision_boundaries(ab, X_test, y_test, T)
+    plt.tight_layout(pad=1.)
+    # plt.show()
+
+
+
+def init_data_and_mod(T, m, m_test):
+    """
+    generates data, inits a classifier and trains it.
+    :param T: number of decision stumps
+    :param m: number of data samples
+    :param m_test: number of test samples
+    :return: X_test, y_test, X_train, y_train, classifier
+    """
+    X_train, y_train = generate_data(m, NO_NOISE)
+    X_test, y_test = generate_data(m_test, NO_NOISE)
+    ab = AdaBoost(DecisionStump, T)
+    ab.train(X_train, y_train)
+    return X_test, y_test, X_train, y_train, ab
+
+
+def q_15(m=5000, m_test=200, T=500):
+    min_err, min_T = 1, -1
+    X_test, y_test, X_train, y_train, ab = init_data_and_mod(T, m, m_test)
+    for max_t in range(T):
+        test_err = ab.error(X_test,y_test,max_t)
+        if test_err < min_err:
+            min_err = test_err
+            min_T = max_t
+    decision_boundaries(ab, X_train, y_train, min_T)
+    plt.savefig("q15_plot")
+    plt.show()
+    return min_err, min_T
+
 
 if __name__ == '__main__':
-    pass
+    print(q_15())

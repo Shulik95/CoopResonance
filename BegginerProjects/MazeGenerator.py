@@ -18,8 +18,11 @@ cell = 'c'
 wall = 'w'
 unvisited = 'u'
 
-
 # ------ functions ------ #
+
+# colorama initialization
+init()
+
 
 def init_maze(width, height):
     """
@@ -30,6 +33,27 @@ def init_maze(width, height):
     """
     maze = []
     for i in range(height):
-        row = ["u" for j in range(width)] # creates row
+        row = ["u" for j in range(width)]  # creates row
         maze.append(row)
     return maze
+
+
+def print_maze(maze):
+    """
+    prints maze for debugging.
+    :param maze: list of lists
+    """
+    for i in range(len(maze)):
+        for j in range(len(maze[0])):
+            if maze[i][j] == unvisited:
+                print(Fore.WHITE, f'{maze[i][j]}', end='')
+            elif maze[i][j] == cell:
+                print(Fore.GREEN, f'{maze[i][j]}', end='')
+            else:
+                print(Fore.RED, f'{maze[i][j]}', end='')
+        print('\n')
+
+
+if __name__ == '__main__':
+    m = init_maze(27, 11)
+    print_maze(m)

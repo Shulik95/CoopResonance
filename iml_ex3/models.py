@@ -132,7 +132,7 @@ class SVM(AbsClass):
     def fit(self, X, y):
         """
         Given a training set, this method learns the parameters of the model
-        and stores the trained model in self.model
+        and stores the  trained model in self.model
         :param X: a numpy array of size m x d.
         :param y: a binary vector of size m.
         """

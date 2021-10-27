@@ -12,6 +12,7 @@ from ex4_tools import *
 
 NO_NOISE = 0
 SMALL_NOISE = 0.01
+LARGE_NOISE = 0.4
 
 
 class AdaBoost(object):
@@ -92,6 +93,7 @@ def q_13(m=5000, T=500, m_test=200):
     plt.legend()
     plt.grid(True)
     plt.title("Error vs. T")
+    plt.savefig("Error vs T with noise")
 
 
 def q_14(m=5000, m_test=200):
@@ -107,6 +109,7 @@ def q_14(m=5000, m_test=200):
         plt.subplot(2, 3, i + 1)
         decision_boundaries(ab, X_test, y_test, T)
     plt.tight_layout(pad=1.)
+    plt.savefig("Decision_boundaries with noise")
     # plt.show()
 
 
@@ -118,8 +121,8 @@ def init_data_and_mod(T, m, m_test):
     :param m_test: number of test samples
     :return: X_test, y_test, X_train, y_train, classifier
     """
-    X_train, y_train = generate_data(m, SMALL_NOISE)
-    X_test, y_test = generate_data(m_test, SMALL_NOISE)
+    X_train, y_train = generate_data(m, LARGE_NOISE)
+    X_test, y_test = generate_data(m_test, LARGE_NOISE)
     ab = AdaBoost(DecisionStump, T)
     D = ab.train(X_train, y_train)
     return X_test, y_test, X_train, y_train, ab, D
@@ -138,7 +141,7 @@ def q_15(m=1000, m_test=200, T=500):
             min_T = max_t
             model = ab
     decision_boundaries(model, X_train, y_train, min_T)
-    plt.savefig("q15_plot")
+    plt.savefig("q15_plot_with noise")
     plt.show()
     return min_err, min_T
 
@@ -147,9 +150,17 @@ def q_16(T, m, m_test):
     X_test, y_test, X_train, y_train, ab, D = init_data_and_mod(T, m, m_test)
     D = D / np.max(D) * 10
     decision_boundaries(ab, X_train, y_train, T, D)
-    plt.savefig("q16_plot")
+    plt.savefig("q16_plot_with_noise")
     plt.show()
 
 
 if __name__ == '__main__':
-    q_16(500, 5000, 200)
+
+    D_t = np.array([0.40559, 0.0107, 0.46051, 0.0527, 0.07049])
+    y_hat = np.array([-1, -1, 1, -1, 1])
+    S = np.array({1, 2, 3, 4, 5})
+    y = np.array([-1, -1, -1, -1, -1])
+    epsilon_t = sum(D_t[y != y_hat])
+    w = 0.5 * np.log((1 / epsilon_t) - 1)
+    D = np.multiply(D_t, np.exp(-y * w * y_hat))  # update sample weights
+    print(D)

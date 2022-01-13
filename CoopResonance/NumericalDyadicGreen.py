@@ -6,11 +6,12 @@ from numba import njit
 gamma = 24e6
 
 
-def set_sim(N=81, _lambda=24e-6):
+def set_sim(N=81, _lambda=24e-6, fourier=False):
     """
 
-    :param _lambda:
-    :param N:
+    :param fourier: boolean, if False - diagonalize G normally, else - move to fourier space.
+    :param _lambda: wave length.
+    :param N: int, number of atoms. assumes array is square so sqrt(N) must be an inb aswell.
     :return:
     """
     # a_v = np.arange(0.2 * _lambda, _lambda, 0.02)  # different lattice constants
@@ -20,35 +21,31 @@ def set_sim(N=81, _lambda=24e-6):
     for i, curr_a in enumerate(a_v):  # iterate over different lattice constants
         a, b = curr_a, curr_a
         R = create_2d_arr(N, a, b)
-        G = calc_tot_G(N, R, curr_a, k)
-        w, v = eig(G)  # find e-values and e-vectors
+        G = np.zeros((N, N), dtype=complex)  # init empty array
+        G = calc_tot_G(G, N, R, curr_a, k)
+        if fourier:
+            # TODO: implement fourier transform of G and check if its diagonlized.
+            fourier_G = np.fft.fft2(G)
+            print(
+                f'The matrix is diagonal i k-space: {np.count_nonzero(fourier_G - np.diag(np.diagonal(fourier_G))) == 0}')  # sanity check
 
-        plt.scatter(range(N), np.real(w) / gamma, label="real"), plt.scatter(range(N), np.imag(w) / gamma,
-                                                                             label='imag'), plt.title(
-            f"a = {curr_a}")
-        if i ==0:
-            plt.plot(np.real(v[:, 20]))
-        plt.legend()
-        plt.show()
-        # according to Shamoon
-        # rhs = (-3 / 2) * gamma * _lambda * (G[0].sum())
-        # big_delta = np.real(rhs)
-        # big_gamma = 2 * np.imag(rhs)
-        # ret.append([big_delta, curr_a, big_gamma])
+        else:  # diagonalize numerically and use eigen values.
+            w, v = eig(G)  # find e-values and e-vectors
+
     return ret
 
 
-def calc_tot_G(N, loc_arr, a, k):
+@njit
+def calc_tot_G(G, N, loc_arr, a, k):
     """
 
+    :param G:
     :param N:
     :param loc_arr:
     :param a:
     :param k:
     :return:
     """
-    G = np.zeros((N, N), dtype=complex)  # init empty array
-    loc_arr = np.array(loc_arr)
     for i in range(N):
         for j in range(i + 1, N):
             x_ij_pol = (a ** 2) * ((loc_arr[i][0] - loc_arr[j][0]) ** 2)  # TODO: ask Rivka why is that?
@@ -92,7 +89,7 @@ def create_2d_arr(N, a, b):
 
 if __name__ == '__main__':
     _lambda = 0.5e-6
-    output = np.array(set_sim())
-    big_del, a_arr = output[:, 0], output[:, 1]  # take first column
-    plt.plot(a_arr / _lambda, big_del / gamma), plt.ylabel(r"$\Delta/\gamma$"), plt.xlabel(r"a/$\lambda$")
-    plt.show()
+    output = np.array(set_sim(fourier=True))
+    # big_del, a_arr = output[:, 0], output[:, 1]  # take first column
+    # plt.plot(a_arr / _lambda, big_del / gamma), plt.ylabel(r"$\Delta/\gamma$"), plt.xlabel(r"a/$\lambda$")
+    # plt.show()

@@ -150,6 +150,49 @@ def calc_H_cell(n1, n2, num_roots=20, l=0, ignore_B=True):
     return T_n1n2 + C_n1n2 if ignore_B else 0  # TODO: handle case with magnetic field
 
 
+def calc_W(n1, n2, l1, l2, num_roots=20):
+    """
+    calculates the integral expression for W
+    """
+    ret_sum = 0
+    x_i_arr, w_i_arr = lag_weights_roots(num_roots)
+    for i in range(num_roots):
+        x_i = x_i_arr[i]
+        ret_sum += w_i_arr[i] * R_nl(n1, l1, x_i) * (x_i ** 4) * R_nl(n2, l2, x_i) * np.exp(float(x_i))
+    return ret_sum
+
+
+def calc_I(l1, l2):
+    """
+
+    :param l1:
+    :param l2:
+    :return:
+    """
+    temp = l1 - l2
+    match temp:
+        case temp if temp == -2:
+            return (-1 / (np.sqrt((2 * l1 + 1) * (2 * l1 + 5)))) \
+                ((l1 + 2) * (l1 + 1) / (2 * l1 + 3))
+        case temp if temp == 0:
+            return 1 - ((l1 + 1) ** 2) / ((2 * l1 + 3) * (2 * l1 + 1)) - \
+                   l1 ** 2 / ((2 * l1 + 1) * (2 * l1 - 1))
+        case temp if temp == 2:
+            return -l1 * (l1 - 1) / ((2 * l1 - 1) * np.sqrt((2 * l1 + 1) * (2 * l1 - 3)))
+
+
+def calc_B_nl(n1, n2, l1, l2):
+    """
+    calculates the matrix element of the energy added by the magnetic field
+
+    """
+    return calc_I(l1, l2) * calc_W(n1, n2, l1, l2)
+
+
+def Q8(nmax=12):
+    
+
+
 if __name__ == '__main__':
     x_arr = [i for i in range(1, 21)]
     # n_eq_m_arr, n_neq_m_arr = [], []
@@ -167,5 +210,6 @@ if __name__ == '__main__':
     w, v = calc_hamiltonian()
     # print(np.diag(w))
 
-    plt.scatter(x_arr, [E_nl(i) for i in range(1, 21)], alpha=0.5, c='hotpink', label='Ideal'), plt.xlabel(r'n'), plt.ylabel(r'$E_n$')
+    plt.scatter(x_arr, [E_nl(i) for i in range(1, 21)], alpha=0.5, c='hotpink', label='Ideal'), plt.xlabel(
+        r'n'), plt.ylabel(r'$E_n$')
     plt.scatter(x_arr, w, c='navy', alpha=0.5, label='Numeric'), plt.legend(), plt.title(r'$E_n$ vs. n'), plt.show()

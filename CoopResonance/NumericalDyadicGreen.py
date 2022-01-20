@@ -7,7 +7,7 @@ import pandas as pd
 gamma = 24e6
 
 
-def set_sim(N=900, _lambda=0.5e-6, fourier=False):
+def set_sim(N=2500, _lambda=0.5e-6, fourier=False):
     """
 
     :param fourier: boolean, if False - diagonalize G normally, else - move to fourier space.
@@ -17,13 +17,13 @@ def set_sim(N=900, _lambda=0.5e-6, fourier=False):
     """
     # a_v = np.arange(0.2 * _lambda, _lambda, 0.02)  # different lattice constants
     a_v = np.linspace(0.2 * _lambda, _lambda, num=100)
-    ret = []
+    ret, specific_a = [], None
     k = 2 * np.pi / _lambda
     for i, curr_a in enumerate(a_v):  # iterate over different lattice constants
         a, b = curr_a, curr_a
         R = np.array(create_2d_arr(N, a, b))
         G = np.zeros((N, N), dtype=complex)  # init empty array
-        G = calc_tot_G(G, N, R, curr_a, k)
+        G = calc_tot_G(G, N, np.array(R), curr_a, k)
         if fourier:
             fourier_G = np.fft.fft2(G)
             # print(
@@ -35,14 +35,18 @@ def set_sim(N=900, _lambda=0.5e-6, fourier=False):
             idx = np.argsort(w)
             w = w[idx]  # sort eigen values
             v = v[:, idx]  # sort eigen-vectors
-            plt.plot(np.real(v.T[0])*gamma*_lambda/gamma, label="Real"), plt.plot(gamma*_lambda*np.imag(v.T[0])/gamma, label="Imaginary"), plt.title(
-                fr"e-value = {np.around(w[0], 3)}, a = {np.around(curr_a / _lambda, 3)}*$\lambda$"), plt.show()
+            plt.plot(np.real(v.T[0]) * gamma * _lambda, label="Real"), plt.plot(gamma * _lambda * np.imag(v.T[0]),
+                                                                                label="Imaginary"), plt.title(
+                fr"e-value = {np.around(w[0] / gamma, 3)}, a = {np.around(curr_a / _lambda, 3)}*$\lambda$")
+            plt.show()
             g_k = np.sum(G[0:1, :])
         big_Delta, big_Gamma = (-3 / 2) * gamma * _lambda * np.real(g_k), 3 * gamma * _lambda * np.imag(g_k)
-        ret.append([big_Delta, curr_a, big_Gamma])
+        if np.around(curr_a / _lambda, 2) == 0.62:
+            specific_a = w, np.around(curr_a / _lambda, 2)
+        ret.append([big_Delta, curr_a, big_Gamma, w[0]])
 
         print(f'{np.around((i / len(a_v) * 100), 2)}% Done')
-    return ret
+    return ret, specific_a
 
 
 @njit
@@ -100,7 +104,23 @@ def create_2d_arr(N, a, b):
 
 if __name__ == '__main__':
     _lambda = 0.5e-6
-    output = np.array(set_sim())
+    output, spec = set_sim()
+    output = np.array(output)
     big_del, a_arr = output[:, 0], output[:, 1]  # take first column
-    plt.plot(a_arr / _lambda, big_del / gamma), plt.ylabel(r"$\Delta/\gamma$"), plt.xlabel(r"a/$\lambda$")
+
+    plt.plot(a_arr / _lambda, big_del / gamma), plt.ylabel(r"$\Delta/\gamma$"), plt.xlabel(
+        r"a/$\lambda$")
+    plt.axhline(y=0, c='firebrick', linestyle='--')
+    plt.show()
+
+    # plot min{Re(E_i)} vs a
+    e_val_arr = output[:, 3]
+    plt.plot(a_arr / _lambda, np.real(e_val_arr) / gamma), plt.ylabel(r"$E_{a}/\lambda$"), plt.xlabel(
+        r'a/$\lambda$')
+    plt.title(r'min{Re($E_{a}$)} vs. a/$\lambda$')
+    plt.show()
+
+    # plot eigen values for specific a
+    plt.plot(np.real(spec[0]) / gamma), plt.ylabel(r'Eigen value'), plt.title(
+        f"Eigen values for a = {np.around(np.real(spec[1]), 3)}")
     plt.show()
